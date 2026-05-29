@@ -24,12 +24,13 @@ def uploads_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def test_media_upload_creates_asset_and_file(
-    seeded_client: TestClient, uploads_tmp: Path
+    seeded_client: TestClient, uploads_tmp: Path, admin_headers: dict[str, str]
 ) -> None:
     response = seeded_client.post(
         "/api/admin/media/upload",
         files={"file": ("foto-produto.png", MINI_PNG, "image/png")},
         data={"alt": "Caneco de chope", "type": "product"},
+        headers=admin_headers,
     )
     assert response.status_code == 201
     body = response.json()
@@ -40,32 +41,34 @@ def test_media_upload_creates_asset_and_file(
     filename = body["url"].split("/")[-1]
     assert (uploads_tmp / filename).is_file()
 
-    listed = seeded_client.get("/api/admin/media").json()
+    listed = seeded_client.get("/api/admin/media", headers=admin_headers).json()
     assert any(m["id"] == body["id"] for m in listed)
 
-    seeded_client.delete(f"/api/admin/media/{body['id']}")
+    seeded_client.delete(f"/api/admin/media/{body['id']}", headers=admin_headers)
     assert not (uploads_tmp / filename).is_file()
 
 
 def test_media_upload_rejects_invalid_mime(
-    seeded_client: TestClient, uploads_tmp: Path
+    seeded_client: TestClient, uploads_tmp: Path, admin_headers: dict[str, str]
 ) -> None:
     del uploads_tmp  # fixture side effect only
     response = seeded_client.post(
         "/api/admin/media/upload",
         files={"file": ("doc.txt", b"hello", "text/plain")},
         data={"type": "product"},
+        headers=admin_headers,
     )
     assert response.status_code == 415
 
 
 def test_media_upload_rejects_mismatched_content(
-    seeded_client: TestClient, uploads_tmp: Path
+    seeded_client: TestClient, uploads_tmp: Path, admin_headers: dict[str, str]
 ) -> None:
     del uploads_tmp
     response = seeded_client.post(
         "/api/admin/media/upload",
         files={"file": ("fake.png", b"not-a-png", "image/png")},
         data={"type": "product"},
+        headers=admin_headers,
     )
     assert response.status_code == 415

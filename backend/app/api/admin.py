@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import require_admin
 from app.models.media_asset import MediaAssetType
 
 from app.db.session import get_public_db
@@ -23,7 +24,11 @@ from app.schemas.admin import (
 from app.services import admin_catalog as catalog
 from app.services import tracking_metrics
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(require_admin)],
+)
 
 
 # Products

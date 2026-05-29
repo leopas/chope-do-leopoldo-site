@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import { AnalyticsBootstrap } from "@/components/public/AnalyticsBootstrap";
 import HomePage from "@/pages/HomePage";
 import MenuPage from "@/pages/MenuPage";
@@ -11,6 +12,7 @@ import AdminCampaignsPage from "@/pages/admin/CampaignsPage";
 import AdminLandingPagesPage from "@/pages/admin/LandingPagesPage";
 import AdminMediaPage from "@/pages/admin/MediaPage";
 import AdminSettingsPage from "@/pages/admin/SettingsPage";
+import AdminLoginPage from "@/pages/admin/LoginPage";
 
 function NotFoundPage() {
   return (
@@ -50,13 +52,20 @@ export const router = createBrowserRouter([
       { path: "/lp/:slug", element: <LandingPage /> },
     ],
   },
-  { path: "/admin", element: <AdminDashboardPage /> },
-  { path: "/admin/produtos", element: <AdminProductsPage /> },
-  { path: "/admin/categorias", element: <AdminCategoriesPage /> },
-  { path: "/admin/campanhas", element: <AdminCampaignsPage /> },
-  { path: "/admin/landing-pages", element: <AdminLandingPagesPage /> },
-  { path: "/admin/imagens", element: <AdminMediaPage /> },
-  { path: "/admin/configuracoes", element: <AdminSettingsPage /> },
+  { path: "/admin/login", element: <AdminLoginPage /> },
+  {
+    path: "/admin",
+    element: <AdminRoute />,
+    children: [
+      { index: true, element: <AdminDashboardPage /> },
+      { path: "produtos", element: <AdminProductsPage /> },
+      { path: "categorias", element: <AdminCategoriesPage /> },
+      { path: "campanhas", element: <AdminCampaignsPage /> },
+      { path: "landing-pages", element: <AdminLandingPagesPage /> },
+      { path: "imagens", element: <AdminMediaPage /> },
+      { path: "configuracoes", element: <AdminSettingsPage /> },
+    ],
+  },
   { path: "/admin/", element: <Navigate to="/admin" replace /> },
   { path: "*", element: <NotFoundPage /> },
 ]);

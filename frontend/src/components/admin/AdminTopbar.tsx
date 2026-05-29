@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -7,7 +7,9 @@ import {
   Layout,
   Images,
   Settings,
+  LogOut,
 } from "lucide-react";
+import { logoutAdmin } from "@/lib/auth/admin-auth";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -29,6 +31,13 @@ const mobileItems: NavItem[] = [
 
 export function AdminTopbar({ title }: { title: string }) {
   const { pathname: path } = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logoutAdmin();
+    navigate("/admin/login", { replace: true });
+  };
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between px-4 md:px-8">
@@ -38,12 +47,21 @@ export function AdminTopbar({ title }: { title: string }) {
           </p>
           <h1 className="font-display text-xl font-semibold leading-tight">{title}</h1>
         </div>
-        <Link
-          to="/"
-          className="hidden rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted md:inline-flex"
-        >
-          Ver site público
-        </Link>
+        <div className="hidden items-center gap-2 md:flex">
+          <Link
+            to="/"
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+          >
+            Ver site público
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Sair
+          </button>
+        </div>
       </div>
       <nav className="md:hidden">
         <div className="flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

@@ -37,6 +37,12 @@ class Settings(BaseSettings):
         default=None, alias="AZURE_STORAGE_ACCOUNT_URL"
     )
 
+    jwt_secret: str | None = Field(default=None, alias="JWT_SECRET")
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_expires_minutes: int = Field(default=480, alias="JWT_EXPIRES_MINUTES")
+    admin_initial_email: str | None = Field(default=None, alias="ADMIN_INITIAL_EMAIL")
+    admin_initial_password: str | None = Field(default=None, alias="ADMIN_INITIAL_PASSWORD")
+
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024

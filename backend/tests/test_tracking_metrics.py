@@ -2,7 +2,7 @@ def _post_event(client, **kwargs) -> None:
     client.post("/api/public/tracking-events", json=kwargs)
 
 
-def test_campaign_metrics_aggregates(seeded_client) -> None:
+def test_campaign_metrics_aggregates(seeded_client, admin_headers) -> None:
     campaign_id = "c-karaoke"
     slug = "karaoke-sexta"
 
@@ -44,7 +44,10 @@ def test_campaign_metrics_aggregates(seeded_client) -> None:
         sessionId="s1",
     )
 
-    response = seeded_client.get(f"/api/admin/campaigns/{campaign_id}/metrics")
+    response = seeded_client.get(
+        f"/api/admin/campaigns/{campaign_id}/metrics",
+        headers=admin_headers,
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["views"] == 2

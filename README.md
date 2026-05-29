@@ -103,9 +103,25 @@ Documentação interativa: [http://localhost:8000/docs](http://localhost:8000/do
 
 O frontend hidrata o Zustand via `GET /api/public/menu` quando o backend está disponível (fallback para mocks).
 
+### Autenticação admin (CRP-008)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/admin/auth/login` | E-mail + senha → JWT |
+| GET | `/api/admin/auth/me` | Usuário autenticado (Bearer) |
+| POST | `/api/admin/auth/logout` | Logout stateless (cliente descarta token) |
+
+Todas as demais rotas `/api/admin/*` exigem header `Authorization: Bearer <token>`.  
+API pública (`/api/public/*`) permanece aberta.
+
+Variáveis: `JWT_SECRET`, `JWT_ALGORITHM`, `JWT_EXPIRES_MINUTES`, `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`.  
+O seed (`python -m app.db.seed`) cria/atualiza o usuário admin com senha **bcrypt** (nunca em texto puro no banco).
+
+Frontend: `/admin/login`, guard nas rotas admin, token em `localStorage` (`chope_admin_token`).
+
 ### Admin CRUD real (CRP-005)
 
-Rotas em `/api/admin/*` (sem autenticação nesta fase — CRP-008):
+Rotas em `/api/admin/*` (protegidas por JWT desde CRP-008):
 
 | Recurso | Operações |
 |---------|-----------|

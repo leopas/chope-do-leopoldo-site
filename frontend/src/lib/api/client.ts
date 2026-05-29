@@ -1,3 +1,5 @@
+import { clearAdminToken, getAdminToken } from "@/lib/auth/token";
+
 export class ApiError extends Error {
   status: number;
   detail: unknown;
@@ -13,19 +15,28 @@ export class ApiError extends Error {
   }
 }
 
+function authHeaders(init?: RequestInit, jsonBody?: boolean): Record<string, string> {
+  const token = getAdminToken();
+  return {
+    Accept: "application/json",
+    ...(jsonBody ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+}
+
 export async function apiRequest<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    ...(init?.body ? { "Content-Type": "application/json" } : {}),
-    ...(init?.headers as Record<string, string> | undefined),
-  };
+  const headers = authHeaders(init, Boolean(init?.body));
 
   const res = await fetch(path, { ...init, headers });
 
   if (!res.ok) {
+    if (res.status === 401 && path.startsWith("/api/admin") && !path.includes("/auth/login")) {
+      clearAdminToken();
+    }
     let detail: unknown = res.statusText;
     try {
       detail = await res.json();
@@ -47,10 +58,11 @@ export async function apiFormRequest<T>(path: string, form: FormData): Promise<T
   const res = await fetch(path, {
     method: "POST",
     body: form,
-    headers: { Accept: "application/json" },
+    headers: authHeaders(undefined, false),
   });
 
   if (!res.ok) {
+    if (res.status === 401) clearAdminToken();
     let detail: unknown = res.statusText;
     try {
       detail = await res.json();

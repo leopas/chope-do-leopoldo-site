@@ -15,7 +15,9 @@ from app.db.seed_data import (
     SITE_SETTINGS,
 )
 from app.db.session import get_engine, is_database_configured
+from app.core.config import get_settings
 from app.models import Campaign, Category, MediaAsset, Product, SiteSettings
+from app.services.admin_auth import seed_admin_user
 from app.models.media_asset import StorageProvider
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,7 @@ def run_seed(session: Session) -> None:
         )
 
     session.merge(SiteSettings(**SITE_SETTINGS))
+    seed_admin_user(session, get_settings())
     session.commit()
     logger.info(
         "Seed concluído: %d categorias, %d produtos, %d campanhas, %d mídias, settings.",
