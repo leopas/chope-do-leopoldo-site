@@ -3,8 +3,8 @@
 .env.*
 !.env.example
 
-# certs
-certs/
+# certs (não versionar .pem; manter README)
+certs/*
 !certs/README.md
 *.pem
 *.key
