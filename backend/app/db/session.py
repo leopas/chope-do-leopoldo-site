@@ -86,6 +86,18 @@ def get_db() -> Generator[Session, Any, None]:
         db.close()
 
 
+def get_public_db() -> Generator[Session, Any, None]:
+    """Dependency para rotas públicas: 503 se DATABASE_URL ausente."""
+    from fastapi import HTTPException
+
+    if not is_database_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Banco de dados não configurado. Defina DATABASE_URL.",
+        )
+    yield from get_db()
+
+
 def check_db_connection(settings: Settings | None = None) -> tuple[bool, str]:
     cfg = settings or get_settings()
     if not cfg.database_configured:

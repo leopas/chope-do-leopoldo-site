@@ -13,4 +13,8 @@ export function track(event: AnalyticsEvent, payload?: Record<string, unknown>) 
   if (typeof window === "undefined") return;
   // eslint-disable-next-line no-console
   console.debug("[analytics]", event, payload ?? {});
+
+  void import("@/lib/api/public").then(({ postTrackingEvent }) => {
+    void postTrackingEvent(event, payload);
+  });
 }

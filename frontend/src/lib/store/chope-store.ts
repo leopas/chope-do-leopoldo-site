@@ -28,6 +28,12 @@ type ChopeStore = {
   removeMedia: (id: string) => void;
   // settings
   updateSettings: (patch: Partial<SiteSettings>) => void;
+  hydrateFromApi: (data: {
+    settings: SiteSettings;
+    categories: Category[];
+    products: Product[];
+    campaigns: Campaign[];
+  }) => void;
 };
 
 export const useChopeStore = create<ChopeStore>((set) => ({
@@ -96,6 +102,14 @@ export const useChopeStore = create<ChopeStore>((set) => ({
 
   updateSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch } })),
+
+  hydrateFromApi: (data) =>
+    set({
+      settings: data.settings,
+      categories: data.categories,
+      products: data.products,
+      campaigns: data.campaigns,
+    }),
 }));
 
 export function formatPrice(value: number): string {

@@ -85,6 +85,24 @@ O seed é **idempotente** (pode rodar mais de uma vez). Popula categorias, produ
 
 Schemas Pydantic de leitura em `backend/app/schemas/`.
 
+### API pública (CRP-004)
+
+Rotas sem autenticação (prefixo `/api/public`):
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/settings` | Configurações do site |
+| GET | `/menu` | Pacote completo (settings, categorias, produtos, campanhas) |
+| GET | `/categories` | Categorias ativas |
+| GET | `/products` | Produtos ativos |
+| GET | `/campaigns` | Campanhas `active` |
+| GET | `/campaigns/{slug}` | Campanha por slug (404 se ausente) |
+| POST | `/tracking-events` | Registra evento de tracking |
+
+Documentação interativa: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+O frontend hidrata o Zustand via `GET /api/public/menu` quando o backend está disponível (fallback para mocks).
+
 ## Frontend (local)
 
 ```bash

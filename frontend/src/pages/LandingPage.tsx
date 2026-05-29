@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MessageCircle, MapPin, UtensilsCrossed, Sparkles, TicketPercent } from "lucide-react";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
@@ -7,8 +7,10 @@ import { HeroSection } from "@/components/public/HeroSection";
 import { PrimaryCTA, SecondaryCTA } from "@/components/public/CTAButtons";
 import { LocationBlock } from "@/components/public/LocationBlock";
 import { ResponsibleDrinkingNotice } from "@/components/public/ResponsibleDrinkingNotice";
+import { fetchPublicCampaign } from "@/lib/api/public";
 import { useChopeStore } from "@/lib/store/chope-store";
 import { mockCampaigns } from "@/lib/mock/campaigns";
+import type { Campaign } from "@/lib/types";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { track } from "@/lib/analytics";
 
@@ -33,13 +35,44 @@ function LandingNotFound() {
 
 export default function LandingPage() {
   const { slug } = useParams<{ slug: string }>();
-  const campaign = mockCampaigns.find((x) => x.slug === slug);
-  if (!campaign) return <LandingNotFound />;
+  const storeCampaigns = useChopeStore((s) => s.campaigns);
   const settings = useChopeStore((s) => s.settings);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
+    if (!slug) {
+      setResolved(true);
+      return;
+    }
+
+    const fromStore = storeCampaigns.find((x) => x.slug === slug);
+    if (fromStore) {
+      setCampaign(fromStore);
+      setResolved(true);
+      return;
+    }
+
+    fetchPublicCampaign(slug).then((apiCampaign) => {
+      setCampaign(apiCampaign ?? mockCampaigns.find((x) => x.slug === slug) ?? null);
+      setResolved(true);
+    });
+  }, [slug, storeCampaigns]);
+
+  useEffect(() => {
+    if (!campaign?.slug) return;
     track("ViewCampaignLandingPage", { slug: campaign.slug });
-  }, [campaign.slug]);
+  }, [campaign?.slug]);
+
+  if (!resolved) {
+    return (
+      <div className="grid min-h-screen place-items-center text-muted-foreground">
+        Carregando campanha…
+      </div>
+    );
+  }
+
+  if (!campaign) return <LandingNotFound />;
 
   const waMessage = `Olá, ${settings.businessName}! Vim pela campanha ${campaign.name}${campaign.couponCode ? ` (cupom ${campaign.couponCode})` : ""}.`;
   const waLink = buildWhatsAppLink(settings.whatsappNumber, waMessage);
