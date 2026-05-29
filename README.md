@@ -103,6 +103,22 @@ Documentação interativa: [http://localhost:8000/docs](http://localhost:8000/do
 
 O frontend hidrata o Zustand via `GET /api/public/menu` quando o backend está disponível (fallback para mocks).
 
+### Admin CRUD real (CRP-005)
+
+Rotas em `/api/admin/*` (sem autenticação nesta fase — CRP-008):
+
+| Recurso | Operações |
+|---------|-----------|
+| `products` | list, create, get, update, delete |
+| `categories` | list, create, get, update, delete |
+| `campaigns` | list, create, get, update, delete |
+| `media` | list, create (POST), delete |
+| `settings` | get, put |
+
+O painel admin (`/admin/*`) usa `frontend/src/lib/api/client.ts` e serviços em `frontend/src/lib/api/admin/`. Após salvar, `syncPublicCatalog()` re-hidrata o cardápio público via `/api/public/menu`.
+
+Sem `DATABASE_URL`, as rotas admin retornam **503** (mesmo comportamento da API pública).
+
 ## Frontend (local)
 
 ```bash

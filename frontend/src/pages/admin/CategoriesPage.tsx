@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
+import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ImageUploader, type ImageUploaderValue } from "@/components/media/ImageUploader";
-import { useChopeStore } from "@/lib/store/chope-store";
+import { categoriesApi } from "@/lib/api/admin";
+import { syncPublicCatalog } from "@/lib/api/syncPublicCatalog";
 import type { Category } from "@/lib/types";
 
 
@@ -20,21 +22,55 @@ const empty: Category = {
 };
 
 export default function AdminCategories() {
-  const { categories, upsertCategory } = useChopeStore();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Category | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setCategories(await categoriesApi.list());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar categorias");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleSave = async (form: Category) => {
+    try {
+      if (form.id && categories.some((c) => c.id === form.id)) {
+        await categoriesApi.update(form.id, form);
+      } else {
+        await categoriesApi.create({ ...form, id: "" });
+      }
+      setEditing(null);
+      await load();
+      await syncPublicCatalog();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao salvar categoria");
+    }
+  };
 
   return (
     <AdminLayout
       title="Categorias"
       actions={
         <button
-          onClick={() => setEditing({ ...empty, id: `cat-${Date.now()}` })}
+          onClick={() => setEditing({ ...empty })}
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-warm)]"
         >
           <Plus className="h-4 w-4" /> Nova categoria
         </button>
       }
     >
+      <AdminFeedback loading={loading} error={error} isEmpty={!categories.length}>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => (
           <button
@@ -66,15 +102,13 @@ export default function AdminCategories() {
           </button>
         ))}
       </div>
+      </AdminFeedback>
 
       {editing && (
         <CategoryDrawer
           initial={editing}
           onClose={() => setEditing(null)}
-          onSave={(c) => {
-            upsertCategory(c);
-            setEditing(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </AdminLayout>
@@ -88,9 +122,10 @@ function CategoryDrawer({
 }: {
   initial: Category;
   onClose: () => void;
-  onSave: (c: Category) => void;
+  onSave: (c: Category) => void | Promise<void>;
 }) {
   const [form, setForm] = useState<Category>(initial);
+  const [saving, setSaving] = useState(false);
   const image: ImageUploaderValue | null = form.imageUrl
     ? { url: form.imageUrl, alt: form.imageAlt ?? "" }
     : null;
@@ -173,11 +208,15 @@ function CategoryDrawer({
             Cancelar
           </button>
           <button
-            onClick={() => onSave(form)}
-            disabled={!form.name}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(form);
+              setSaving(false);
+            }}
+            disabled={!form.name || saving}
             className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
-            Salvar
+            {saving ? "Salvando…" : "Salvar"}
           </button>
         </footer>
         <style>{`.input{width:100%;border:1px solid var(--input);background:var(--background);padding:.55rem .75rem;border-radius:.6rem;font-size:.875rem;outline:none}.input:focus{border-color:var(--primary)}`}</style>

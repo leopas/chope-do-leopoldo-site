@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, X, ExternalLink } from "lucide-react";
+import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ImageUploader, type ImageUploaderValue } from "@/components/media/ImageUploader";
-import { useChopeStore } from "@/lib/store/chope-store";
+import { campaignsApi } from "@/lib/api/admin";
+import { syncPublicCatalog } from "@/lib/api/syncPublicCatalog";
 import type { Campaign, CampaignChannel, CampaignStatus } from "@/lib/types";
 
 
@@ -43,21 +45,55 @@ const statusLabel: Record<CampaignStatus, string> = {
 };
 
 export default function AdminCampaigns() {
-  const { campaigns, upsertCampaign } = useChopeStore();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Campaign | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setCampaigns(await campaignsApi.list());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar campanhas");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleSave = async (form: Campaign) => {
+    try {
+      if (form.id && campaigns.some((c) => c.id === form.id)) {
+        await campaignsApi.update(form.id, form);
+      } else {
+        await campaignsApi.create({ ...form, id: "" });
+      }
+      setEditing(null);
+      await load();
+      await syncPublicCatalog();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao salvar campanha");
+    }
+  };
 
   return (
     <AdminLayout
       title="Campanhas"
       actions={
         <button
-          onClick={() => setEditing({ ...empty, id: `c-${Date.now()}` })}
+          onClick={() => setEditing({ ...empty })}
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-warm)]"
         >
           <Plus className="h-4 w-4" /> Nova campanha
         </button>
       }
     >
+      <AdminFeedback loading={loading} error={error} isEmpty={!campaigns.length}>
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -112,15 +148,13 @@ export default function AdminCampaigns() {
           </tbody>
         </table>
       </div>
+      </AdminFeedback>
 
       {editing && (
         <CampaignDrawer
           initial={editing}
           onClose={() => setEditing(null)}
-          onSave={(c) => {
-            upsertCampaign(c);
-            setEditing(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </AdminLayout>
@@ -134,9 +168,10 @@ function CampaignDrawer({
 }: {
   initial: Campaign;
   onClose: () => void;
-  onSave: (c: Campaign) => void;
+  onSave: (c: Campaign) => void | Promise<void>;
 }) {
   const [form, setForm] = useState<Campaign>(initial);
+  const [saving, setSaving] = useState(false);
   const image: ImageUploaderValue | null = form.heroImageUrl
     ? { url: form.heroImageUrl, alt: form.heroImageAlt }
     : null;
@@ -269,11 +304,15 @@ function CampaignDrawer({
             Cancelar
           </button>
           <button
-            onClick={() => onSave(form)}
-            disabled={!form.name || !form.slug || !form.title}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(form);
+              setSaving(false);
+            }}
+            disabled={!form.name || !form.slug || !form.title || saving}
             className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
-            Salvar
+            {saving ? "Salvando…" : "Salvar"}
           </button>
         </footer>
         <style>{`.input{width:100%;border:1px solid var(--input);background:var(--background);padding:.55rem .75rem;border-radius:.6rem;font-size:.875rem;outline:none}.input:focus{border-color:var(--primary)}`}</style>

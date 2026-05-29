@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Search, Eye, Trash2, X, UploadCloud } from "lucide-react";
+import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useChopeStore } from "@/lib/store/chope-store";
+import { mediaApi } from "@/lib/api/admin";
 import type { MediaAsset, MediaAssetType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
 
 const FILTERS: (MediaAssetType | "all")[] = [
   "all",
@@ -26,10 +26,28 @@ const labelFor = (k: MediaAssetType | "all") =>
   })[k];
 
 export default function AdminMedia() {
-  const { media, addMedia, removeMedia } = useChopeStore();
+  const [media, setMedia] = useState<MediaAsset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<MediaAssetType | "all">("all");
   const [q, setQ] = useState("");
   const [preview, setPreview] = useState<MediaAsset | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setMedia(await mediaApi.list());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar imagens");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const filtered = media.filter((m) => {
     if (filter !== "all" && m.type !== filter) return false;
@@ -37,16 +55,19 @@ export default function AdminMedia() {
     return true;
   });
 
-  const onUpload = (file: File) => {
+  const onUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
-    addMedia({
-      id: `m-${Date.now()}`,
-      name: file.name,
-      url,
-      alt: file.name.replace(/\.[^.]+$/, ""),
-      type: filter === "all" ? "product" : filter,
-      uploadedAt: new Date().toISOString().slice(0, 10),
-    });
+    try {
+      await mediaApi.create({
+        name: file.name,
+        url,
+        alt: file.name.replace(/\.[^.]+$/, ""),
+        type: filter === "all" ? "product" : filter,
+      });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao enviar imagem");
+    }
   };
 
   return (
@@ -59,7 +80,7 @@ export default function AdminMedia() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])}
+            onChange={(e) => e.target.files?.[0] && void onUpload(e.target.files[0])}
           />
         </label>
       }
@@ -92,11 +113,12 @@ export default function AdminMedia() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">
-          Nenhuma imagem cadastrada ainda.
-        </div>
-      ) : (
+      <AdminFeedback
+        loading={loading}
+        error={error}
+        isEmpty={!filtered.length}
+        emptyMessage="Nenhuma imagem cadastrada ainda."
+      >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filtered.map((a) => (
             <div
@@ -114,7 +136,16 @@ export default function AdminMedia() {
                     <Eye className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => removeMedia(a.id)}
+                    onClick={async () => {
+                      try {
+                        await mediaApi.remove(a.id);
+                        await load();
+                      } catch (e) {
+                        setError(
+                          e instanceof Error ? e.message : "Erro ao remover imagem",
+                        );
+                      }
+                    }}
                     className="grid h-8 w-8 place-items-center rounded-full bg-white text-destructive"
                     aria-label="Remover"
                   >
@@ -131,7 +162,7 @@ export default function AdminMedia() {
             </div>
           ))}
         </div>
-      )}
+      </AdminFeedback>
 
       {preview && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/70 p-4">
@@ -143,15 +174,6 @@ export default function AdminMedia() {
               <X className="h-4 w-4" />
             </button>
             <img src={preview.url} alt={preview.alt} className="max-h-[80vh] w-full object-contain" />
-            <div className="border-t border-border p-3 text-xs">
-              <p className="font-semibold">{preview.name}</p>
-              <p className="text-muted-foreground">
-                {labelFor(preview.type)} · {preview.uploadedAt}
-              </p>
-              <button className="mt-2 text-xs font-semibold text-primary hover:underline">
-                Ajustar enquadramento (em breve)
-              </button>
-            </div>
           </div>
         </div>
       )}
