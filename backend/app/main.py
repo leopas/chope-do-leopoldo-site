@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 static_dir = Path(__file__).resolve().parent / "static"
+uploads_dir = settings.uploads_path
+uploads_dir.mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
@@ -44,6 +46,8 @@ def health() -> dict[str, str]:
 
 app.include_router(api_router, prefix=settings.api_prefix)
 
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+logger.info("Uploads mounted at /uploads from %s", uploads_dir)
 
 if static_dir.exists():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")

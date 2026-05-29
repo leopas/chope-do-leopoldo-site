@@ -41,3 +41,24 @@ export async function apiRequest<T>(
 
   return (await res.json()) as T;
 }
+
+/** Multipart — não definir Content-Type (boundary automático). */
+export async function apiFormRequest<T>(path: string, form: FormData): Promise<T> {
+  const res = await fetch(path, {
+    method: "POST",
+    body: form,
+    headers: { Accept: "application/json" },
+  });
+
+  if (!res.ok) {
+    let detail: unknown = res.statusText;
+    try {
+      detail = await res.json();
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  return (await res.json()) as T;
+}

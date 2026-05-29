@@ -147,6 +147,7 @@ function CategoryDrawer({
               Imagem ou ícone da categoria
             </p>
             <ImageUploader
+              assetType="category"
               value={image}
               onChange={(v) =>
                 setForm({ ...form, imageUrl: v?.url ?? "", imageAlt: v?.alt ?? "" })

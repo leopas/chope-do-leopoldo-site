@@ -11,9 +11,15 @@ services:
         required: false
     volumes:
       - ./certs:/app/certs:ro
+      - chope-uploads:/app/backend/app/static/uploads
     environment:
       APP_ENV: local
       APP_NAME: chope-do-leopoldo-site
       API_PREFIX: /api
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8000
       DB_SSL_CA_PATH: /app/certs/azure-db-ca.pem
+      MEDIA_STORAGE_PROVIDER: local
+      MAX_UPLOAD_MB: "5"
+
+volumes:
+  chope-uploads:

@@ -193,6 +193,7 @@ function CampaignDrawer({
               Imagem principal da campanha
             </p>
             <ImageUploader
+              assetType="campaign"
               value={image}
               onChange={(v) =>
                 setForm({ ...form, heroImageUrl: v?.url ?? "", heroImageAlt: v?.alt ?? "" })

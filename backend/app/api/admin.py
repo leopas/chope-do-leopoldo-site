@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from sqlalchemy.orm import Session
+
+from app.models.media_asset import MediaAssetType
 
 from app.db.session import get_public_db
 from app.schemas.admin import (
@@ -138,6 +140,29 @@ def admin_create_media(
     payload: MediaAssetCreate, db: Session = Depends(get_public_db)
 ) -> PublicMediaAssetOut:
     return catalog.create_media(db, payload)
+
+
+@router.post(
+    "/media/upload",
+    response_model=PublicMediaAssetOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def admin_upload_media(
+    file: UploadFile = File(...),
+    alt: str = Form(""),
+    type: MediaAssetType = Form(MediaAssetType.product),
+    db: Session = Depends(get_public_db),
+) -> PublicMediaAssetOut:
+    content = await file.read()
+    content_type = file.content_type or "application/octet-stream"
+    return catalog.upload_media(
+        db,
+        content=content,
+        content_type=content_type,
+        original_name=file.filename or "upload",
+        alt=alt,
+        asset_type=type,
+    )
 
 
 @router.delete("/media/{media_id}", status_code=status.HTTP_204_NO_CONTENT)

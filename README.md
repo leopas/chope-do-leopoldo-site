@@ -112,12 +112,30 @@ Rotas em `/api/admin/*` (sem autenticação nesta fase — CRP-008):
 | `products` | list, create, get, update, delete |
 | `categories` | list, create, get, update, delete |
 | `campaigns` | list, create, get, update, delete |
-| `media` | list, create (POST), delete |
+| `media` | list, upload (multipart), create (URL externa), delete |
 | `settings` | get, put |
 
 O painel admin (`/admin/*`) usa `frontend/src/lib/api/client.ts` e serviços em `frontend/src/lib/api/admin/`. Após salvar, `syncPublicCatalog()` re-hidrata o cardápio público via `/api/public/menu`.
 
 Sem `DATABASE_URL`, as rotas admin retornam **503** (mesmo comportamento da API pública).
+
+### Upload de imagens (CRP-006)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/admin/media/upload` | `multipart/form-data`: `file`, `alt`, `type` |
+| GET | `/api/admin/media` | Biblioteca de mídia |
+| DELETE | `/api/admin/media/{id}` | Remove registro e arquivo (storage local) |
+
+Arquivos locais (padrão): `backend/app/static/uploads/` → servidos em `/uploads/{filename}`.
+
+Abstração de storage em `backend/app/services/storage/` (`local` e `azure_blob` preparado). Variáveis em `.env.example`:
+
+- `MEDIA_STORAGE_PROVIDER=local`
+- `MAX_UPLOAD_MB=5`
+- `UPLOADS_DIR` (opcional; Docker: `/app/backend/app/static/uploads`)
+
+No dev com Vite, `/uploads` também é proxy para a API.
 
 ## Frontend (local)
 
@@ -128,7 +146,7 @@ npm run dev
 ```
 
 - App: [http://localhost:5173](http://localhost:5173)
-- O Vite faz proxy de `/health` e `/api` para a porta 8000.
+- O Vite faz proxy de `/health`, `/api` e `/uploads` para a porta 8000.
 
 ## Build do frontend
 

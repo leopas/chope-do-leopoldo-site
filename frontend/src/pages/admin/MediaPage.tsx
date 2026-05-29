@@ -56,11 +56,9 @@ export default function AdminMedia() {
   });
 
   const onUpload = async (file: File) => {
-    const url = URL.createObjectURL(file);
+    setError(null);
     try {
-      await mediaApi.create({
-        name: file.name,
-        url,
+      await mediaApi.upload(file, {
         alt: file.name.replace(/\.[^.]+$/, ""),
         type: filter === "all" ? "product" : filter,
       });

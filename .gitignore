@@ -11,9 +11,10 @@ certs/*
 *.pfx
 *.crt
 
-# uploads locais
+# uploads locais (arquivos gerados; manter pasta)
 local-uploads/
-backend/app/static/uploads/
+backend/app/static/uploads/*
+!backend/app/static/uploads/.gitkeep
 
 # python
 __pycache__/

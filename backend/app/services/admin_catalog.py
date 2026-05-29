@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.db.seed_data import SITE_SETTINGS_ID
 from app.models.campaign import Campaign
 from app.models.category import Category
-from app.models.media_asset import MediaAsset, StorageProvider
+from app.models.media_asset import MediaAsset, MediaAssetType, StorageProvider
 from app.models.product import Product
 from app.models.site_settings import SiteSettings
 from app.schemas.admin import (
@@ -27,7 +27,10 @@ from app.schemas.admin import (
     PublicSiteSettingsOut,
     SiteSettingsUpdate,
 )
+from app.core.config import get_settings as get_app_settings
 from app.services import mappers
+from app.services.storage import get_media_storage
+from app.services.storage.upload_validation import validate_upload
 
 
 def _new_id(prefix: str, custom: str | None = None) -> str:
@@ -277,10 +280,45 @@ def create_media(db: Session, payload: MediaAssetCreate) -> PublicMediaAssetOut:
     return mappers.media_out(row)
 
 
+def upload_media(
+    db: Session,
+    *,
+    content: bytes,
+    content_type: str,
+    original_name: str,
+    alt: str,
+    asset_type: MediaAssetType,
+) -> PublicMediaAssetOut:
+    app_settings = get_app_settings()
+    validated_type = validate_upload(content, content_type, app_settings.max_upload_bytes)
+    storage = get_media_storage(app_settings)
+    stored = storage.save(content, validated_type, original_name)
+
+    display_name = original_name or stored.blob_name
+    row = MediaAsset(
+        id=_new_id("m", None),
+        name=display_name,
+        url=stored.url,
+        alt=alt or display_name.rsplit(".", 1)[0],
+        type=asset_type,
+        storage_provider=stored.storage_provider,
+        blob_name=stored.blob_name,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return mappers.media_out(row)
+
+
 def delete_media(db: Session, media_id: str) -> None:
     row = db.get(MediaAsset, media_id)
     if not row:
         raise HTTPException(status_code=404, detail="Imagem não encontrada")
+    if row.blob_name:
+        try:
+            get_media_storage().delete(row.blob_name)
+        except OSError:
+            pass
     db.delete(row)
     db.commit()
 

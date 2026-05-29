@@ -233,6 +233,7 @@ function ProductDrawer({
         </header>
         <div className="flex-1 overflow-auto p-5">
           <ImageUploader
+            assetType="product"
             value={image}
             onChange={(v) =>
               setForm({ ...form, imageUrl: v?.url ?? "", imageAlt: v?.alt ?? "" })
