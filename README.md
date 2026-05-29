@@ -182,18 +182,29 @@ cd frontend
 npm run build
 ```
 
-Saída em `frontend/dist/`. Para servir pelo FastAPI, copie o conteúdo para `backend/app/static/` (o Dockerfile faz isso automaticamente).
+Saída em `frontend/dist/`. Em produção o Dockerfile copia para `backend/app/static/frontend/` (SPA com fallback em `/menu`, `/admin`, `/lp/*`).
 
-## Docker
+## Docker (CRP-009 — Azure-ready)
+
+Build multi-stage: Node (Vite) → `backend/app/static/frontend`, Python + **Gunicorn/Uvicorn**.
 
 ```bash
 docker compose up --build
 ```
 
-- App + API: [http://localhost:8000](http://localhost:8000)
-- Health: [http://localhost:8000/health](http://localhost:8000/health)
+| URL | Descrição |
+|-----|-----------|
+| [http://localhost:8000/health](http://localhost:8000/health) | Health da API |
+| [http://localhost:8000/](http://localhost:8000/) | SPA (home) |
+| [http://localhost:8000/menu](http://localhost:8000/menu) | SPA (cardápio) |
+| [http://localhost:8000/admin](http://localhost:8000/admin) | SPA (admin) |
+| [http://localhost:8000/api/health/db](http://localhost:8000/api/health/db) | Health do banco |
 
-Copie `.env.example` para `.env.local` quando precisar de variáveis extras (não commitar segredos).
+- Certificado DB: montar `certs/azure-db-ca.pem` (ver `docker-compose.yml`, não commitar o `.pem`).
+- Uploads: volume `chope-uploads` em `/app/app/static/uploads`.
+- Deploy Azure: [infra/azure-container.md](infra/azure-container.md).
+
+Copie `.env.example` para `.env.local` (`DATABASE_URL`, `JWT_SECRET`, admin, etc.).
 
 ## CRPs
 

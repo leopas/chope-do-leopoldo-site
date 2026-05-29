@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.db.session import validate_database_startup
+from app.spa import resolve_spa_directory
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,9 +18,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-static_dir = Path(__file__).resolve().parent / "static"
 uploads_dir = settings.uploads_path
 uploads_dir.mkdir(parents=True, exist_ok=True)
+spa_dir = resolve_spa_directory()
 
 
 @asynccontextmanager
@@ -49,8 +50,9 @@ app.include_router(api_router, prefix=settings.api_prefix)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 logger.info("Uploads mounted at /uploads from %s", uploads_dir)
 
-if static_dir.exists():
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
-    logger.info("Static frontend mounted from %s", static_dir)
+if spa_dir is not None:
+    # html=True: /menu, /admin, /lp/:slug → index.html (React Router)
+    app.mount("/", StaticFiles(directory=spa_dir, html=True), name="spa")
+    logger.info("SPA frontend mounted from %s", spa_dir)
 else:
-    logger.info("Static directory not found at %s (dev mode OK)", static_dir)
+    logger.info("SPA static not found (dev: use Vite na porta 5173)")

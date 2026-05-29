@@ -1,0 +1,36 @@
+# Git e IDE
+.git
+.gitignore
+.cursor
+.idea
+.vscode
+
+# Env e segredos
+.env
+.env.*
+!.env.example
+
+# Certificados reais (montar em runtime)
+certs/*.pem
+
+# Python
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+
+# Node / frontend dev
+frontend/node_modules
+frontend/dist
+
+# Build local do backend
+backend/app/static/frontend
+backend/app/static/uploads/*
+!backend/app/static/uploads/.gitkeep
+
+# Docs e CRPs (não necessários na imagem)
+CRPs_Chope_Leopoldo_MD
+agent-transcripts
+
+# Testes (opcional na imagem; reduz contexto)
+backend/tests

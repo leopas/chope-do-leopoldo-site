@@ -10,16 +10,19 @@ services:
       - path: .env.local
         required: false
     volumes:
+      # Certificado Azure DB — coloque azure-db-ca.pem em certs/ (não commitar)
       - ./certs:/app/certs:ro
-      - chope-uploads:/app/backend/app/static/uploads
+      - chope-uploads:/app/app/static/uploads
     environment:
       APP_ENV: local
       APP_NAME: chope-do-leopoldo-site
       API_PREFIX: /api
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8000
       DB_SSL_CA_PATH: /app/certs/azure-db-ca.pem
+      UPLOADS_DIR: /app/app/static/uploads
       MEDIA_STORAGE_PROVIDER: local
       MAX_UPLOAD_MB: "5"
+      # Defina em .env.local: DATABASE_URL, JWT_SECRET, ADMIN_INITIAL_*
 
 volumes:
   chope-uploads:
