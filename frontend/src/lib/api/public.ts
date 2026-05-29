@@ -10,6 +10,21 @@ type PublicMenuResponse = {
 
 type PublicCampaign = Campaign;
 
+export type TrackingEventBody = {
+  eventName: string;
+  campaignId?: string;
+  campaignSlug?: string;
+  productId?: string;
+  sessionId?: string;
+  anonymousId?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  fbclid?: string;
+  payload?: Record<string, unknown>;
+};
+
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T | null> {
   try {
     const res = await fetch(path, init);
@@ -28,25 +43,10 @@ export async function fetchPublicCampaign(slug: string): Promise<PublicCampaign 
   return fetchJson<PublicCampaign>(`/api/public/campaigns/${encodeURIComponent(slug)}`);
 }
 
-export async function postTrackingEvent(
-  eventName: string,
-  payload?: Record<string, unknown>,
-): Promise<void> {
+export async function postTrackingEvent(body: TrackingEventBody): Promise<void> {
   await fetchJson("/api/public/tracking-events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      eventName,
-      payload,
-      sessionId:
-        typeof window !== "undefined"
-          ? window.sessionStorage.getItem("chope_session_id") ??
-            (() => {
-              const id = crypto.randomUUID();
-              window.sessionStorage.setItem("chope_session_id", id);
-              return id;
-            })()
-          : undefined,
-    }),
+    body: JSON.stringify(body),
   });
 }

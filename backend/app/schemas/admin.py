@@ -233,8 +233,23 @@ class SiteSettingsUpdate(BaseModel):
     )
 
 
+class CampaignMetricsOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    campaign_id: str = Field(serialization_alias="campaignId")
+    campaign_slug: str = Field(serialization_alias="campaignSlug")
+    views: int
+    click_whatsapp: int = Field(serialization_alias="clickWhatsApp")
+    click_directions: int = Field(serialization_alias="clickDirections")
+    coupons_shown: int = Field(serialization_alias="couponsShown")
+    coupons_copied: int = Field(serialization_alias="couponsCopied")
+    whatsapp_rate: float = Field(serialization_alias="whatsappRate")
+    directions_rate: float = Field(serialization_alias="directionsRate")
+
+
 # Re-export response types for OpenAPI
 __all__ = [
+    "CampaignMetricsOut",
     "PublicCampaignOut",
     "PublicCategoryOut",
     "PublicMediaAssetOut",

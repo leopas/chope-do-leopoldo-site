@@ -70,6 +70,7 @@ def settings_out(settings: SiteSettings) -> PublicSiteSettingsOut:
         show_responsible_drinking_notice=settings.show_responsible_drinking_notice,
         meta_pixel_id=settings.meta_pixel_id or None,
         google_tag_manager_id=settings.google_tag_manager_id or None,
+        load_marketing_scripts_after_consent=settings.load_marketing_scripts_after_consent,
     )
 
 

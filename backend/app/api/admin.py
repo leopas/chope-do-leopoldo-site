@@ -6,6 +6,7 @@ from app.models.media_asset import MediaAssetType
 from app.db.session import get_public_db
 from app.schemas.admin import (
     CampaignCreate,
+    CampaignMetricsOut,
     CampaignUpdate,
     CategoryCreate,
     CategoryUpdate,
@@ -20,6 +21,7 @@ from app.schemas.admin import (
     SiteSettingsUpdate,
 )
 from app.services import admin_catalog as catalog
+from app.services import tracking_metrics
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -112,6 +114,13 @@ def admin_get_campaign(
     campaign_id: str, db: Session = Depends(get_public_db)
 ) -> PublicCampaignOut:
     return catalog.get_campaign(db, campaign_id)
+
+
+@router.get("/campaigns/{campaign_id}/metrics", response_model=CampaignMetricsOut)
+def admin_campaign_metrics(
+    campaign_id: str, db: Session = Depends(get_public_db)
+) -> CampaignMetricsOut:
+    return tracking_metrics.get_campaign_metrics(db, campaign_id)
 
 
 @router.put("/campaigns/{campaign_id}", response_model=PublicCampaignOut)

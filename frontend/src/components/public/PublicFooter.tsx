@@ -1,5 +1,6 @@
 import { Instagram, MapPin, MessageCircle } from "lucide-react";
 import { useChopeStore } from "@/lib/store/chope-store";
+import { track } from "@/lib/analytics";
 import { generalInquiryLink } from "@/lib/whatsapp";
 import { ResponsibleDrinkingNotice } from "./ResponsibleDrinkingNotice";
 
@@ -20,6 +21,7 @@ export function PublicFooter() {
             href={settings.mapsUrl}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track("ClickDirections", { source: "footer" })}
             className="flex items-start gap-2 hover:text-primary"
           >
             <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
@@ -29,6 +31,7 @@ export function PublicFooter() {
             href={generalInquiryLink(settings)}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track("ClickWhatsApp", { source: "footer" })}
             className="flex items-center gap-2 hover:text-primary"
           >
             <MessageCircle className="h-4 w-4" /> {settings.whatsappDisplay}
@@ -37,6 +40,7 @@ export function PublicFooter() {
             href={`https://instagram.com/${settings.instagramHandle.replace("@", "")}`}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track("ClickInstagram", { source: "footer" })}
             className="flex items-center gap-2 hover:text-primary"
           >
             <Instagram className="h-4 w-4" /> {settings.instagramHandle}

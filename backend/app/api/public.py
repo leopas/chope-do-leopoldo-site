@@ -11,7 +11,9 @@ from app.schemas.public import (
     TrackingEventCreate,
     TrackingEventCreated,
 )
+from app.core.config import get_settings
 from app.services import public_catalog as catalog
+from app.services.tracking_metrics import hash_client_ip, resolve_client_ip
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -61,8 +63,14 @@ def public_tracking_event(
     request: Request,
     db: Session = Depends(get_public_db),
 ) -> TrackingEventCreated:
+    settings = get_settings()
+    client_ip = resolve_client_ip(
+        request.headers.get("x-forwarded-for"),
+        request.client.host if request.client else None,
+    )
     return catalog.create_tracking_event(
         db,
         body,
         user_agent=request.headers.get("user-agent"),
+        ip_hash=hash_client_ip(client_ip, salt=settings.app_name),
     )

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus, X, ExternalLink } from "lucide-react";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { CampaignMetricsButton } from "@/components/admin/CampaignMetricsPanel";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ImageUploader, type ImageUploaderValue } from "@/components/media/ImageUploader";
 import { campaignsApi } from "@/lib/api/admin";
@@ -127,6 +128,7 @@ export default function AdminCampaigns() {
                 </td>
                 <td className="px-3 py-3 text-right">
                   <div className="inline-flex items-center gap-2">
+                    <CampaignMetricsButton campaign={c} />
                     <Link
                       to={`/lp/${c.slug}`}
                       target="_blank"

@@ -40,7 +40,13 @@ def test_public_campaign_not_found(seeded_client) -> None:
 def test_public_tracking_event(seeded_client) -> None:
     response = seeded_client.post(
         "/api/public/tracking-events",
-        json={"eventName": "ViewMenu", "sessionId": "sess-1"},
+        json={
+            "eventName": "ViewMenu",
+            "sessionId": "sess-1",
+            "anonymousId": "anon-1",
+            "utmSource": "instagram",
+            "utmMedium": "social",
+        },
     )
     assert response.status_code == 201
     body = response.json()

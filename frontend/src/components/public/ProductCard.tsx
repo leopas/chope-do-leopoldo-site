@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/types";
+import { useEffect, useRef } from "react";
 import { useChopeStore, formatPrice } from "@/lib/store/chope-store";
 import { buildWhatsAppLink, productInquiryMessage } from "@/lib/whatsapp";
 import { track } from "@/lib/analytics";
@@ -13,6 +14,14 @@ const badgeColor: Record<NonNullable<Product["badge"]>, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const settings = useChopeStore((s) => s.settings);
+  const viewed = useRef(false);
+
+  useEffect(() => {
+    if (viewed.current) return;
+    viewed.current = true;
+    track("ViewProduct", { productId: product.id, source: "menu_card" });
+  }, [product.id]);
+
   const waLink = buildWhatsAppLink(
     settings.whatsappNumber,
     productInquiryMessage(product, settings.businessName),
@@ -62,7 +71,10 @@ export function ProductCard({ product }: { product: Product }) {
             target="_blank"
             rel="noreferrer"
             onClick={() =>
-              track("ClickWhatsApp", { source: "product_card", productId: product.id })
+              track("ClickWhatsApp", {
+                source: "product_card",
+                productId: product.id,
+              })
             }
             className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:brightness-95"
           >

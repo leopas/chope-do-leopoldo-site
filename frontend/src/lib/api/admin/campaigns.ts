@@ -1,6 +1,18 @@
 import { apiRequest } from "@/lib/api/client";
 import type { Campaign } from "@/lib/types";
 
+export type CampaignMetrics = {
+  campaignId: string;
+  campaignSlug: string;
+  views: number;
+  clickWhatsApp: number;
+  clickDirections: number;
+  couponsShown: number;
+  couponsCopied: number;
+  whatsappRate: number;
+  directionsRate: number;
+};
+
 export const campaignsApi = {
   list: () => apiRequest<Campaign[]>("/api/admin/campaigns"),
   create: (campaign: Campaign) =>
@@ -15,4 +27,6 @@ export const campaignsApi = {
     }),
   remove: (id: string) =>
     apiRequest<void>(`/api/admin/campaigns/${id}`, { method: "DELETE" }),
+  metrics: (id: string) =>
+    apiRequest<CampaignMetrics>(`/api/admin/campaigns/${id}/metrics`),
 };

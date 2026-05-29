@@ -1,5 +1,6 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 
+import { AnalyticsBootstrap } from "@/components/public/AnalyticsBootstrap";
 import HomePage from "@/pages/HomePage";
 import MenuPage from "@/pages/MenuPage";
 import LandingPage from "@/pages/LandingPage";
@@ -31,10 +32,24 @@ function NotFoundPage() {
   );
 }
 
+function PublicShell() {
+  return (
+    <>
+      <AnalyticsBootstrap />
+      <Outlet />
+    </>
+  );
+}
+
 export const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
-  { path: "/menu", element: <MenuPage /> },
-  { path: "/lp/:slug", element: <LandingPage /> },
+  {
+    element: <PublicShell />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/menu", element: <MenuPage /> },
+      { path: "/lp/:slug", element: <LandingPage /> },
+    ],
+  },
   { path: "/admin", element: <AdminDashboardPage /> },
   { path: "/admin/produtos", element: <AdminProductsPage /> },
   { path: "/admin/categorias", element: <AdminCategoriesPage /> },

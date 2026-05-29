@@ -61,8 +61,21 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (!campaign?.slug) return;
-    track("ViewCampaignLandingPage", { slug: campaign.slug });
-  }, [campaign?.slug]);
+    track("ViewCampaignLandingPage", {
+      campaignId: campaign.id,
+      campaignSlug: campaign.slug,
+      slug: campaign.slug,
+    });
+  }, [campaign?.id, campaign?.slug]);
+
+  useEffect(() => {
+    if (!campaign?.couponCode) return;
+    track("CouponShown", {
+      campaignId: campaign.id,
+      campaignSlug: campaign.slug,
+      code: campaign.couponCode,
+    });
+  }, [campaign?.couponCode, campaign?.id, campaign?.slug]);
 
   if (!resolved) {
     return (
@@ -91,7 +104,13 @@ export default function LandingPage() {
           <PrimaryCTA
             external
             href={waLink}
-            onClick={() => track("ClickWhatsApp", { source: "lp_hero", slug: campaign.slug })}
+            onClick={() =>
+              track("ClickWhatsApp", {
+                source: "lp_hero",
+                campaignId: campaign.id,
+                campaignSlug: campaign.slug,
+              })
+            }
           >
             <MessageCircle className="h-5 w-5" /> {campaign.ctaLabel ?? "Chamar no WhatsApp"}
           </PrimaryCTA>
@@ -101,7 +120,13 @@ export default function LandingPage() {
           <SecondaryCTA
             external
             href={settings.mapsUrl}
-            onClick={() => track("ClickDirections", { source: "lp" })}
+            onClick={() =>
+              track("ClickDirections", {
+                source: "lp",
+                campaignId: campaign.id,
+                campaignSlug: campaign.slug,
+              })
+            }
           >
             <MapPin className="h-5 w-5" /> Como Chegar
           </SecondaryCTA>
@@ -125,7 +150,11 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(campaign.couponCode!);
-                  track("UseCoupon", { code: campaign.couponCode, slug: campaign.slug });
+                  track("CouponCopied", {
+                    code: campaign.couponCode,
+                    campaignId: campaign.id,
+                    campaignSlug: campaign.slug,
+                  });
                 }}
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
               >
@@ -190,7 +219,11 @@ export default function LandingPage() {
                 external
                 href={waLink}
                 onClick={() =>
-                  track("ClickWhatsApp", { source: "lp_bottom", slug: campaign.slug })
+                  track("ClickWhatsApp", {
+                    source: "lp_bottom",
+                    campaignId: campaign.id,
+                    campaignSlug: campaign.slug,
+                  })
                 }
               >
                 <MessageCircle className="h-5 w-5" /> Chamar no WhatsApp
@@ -199,7 +232,13 @@ export default function LandingPage() {
                 href={settings.mapsUrl}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => track("ClickDirections", { source: "lp_bottom" })}
+                onClick={() =>
+                  track("ClickDirections", {
+                    source: "lp_bottom",
+                    campaignId: campaign.id,
+                    campaignSlug: campaign.slug,
+                  })
+                }
                 className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3 text-base font-semibold text-white hover:bg-white/15"
               >
                 <MapPin className="h-5 w-5" /> Como chegar

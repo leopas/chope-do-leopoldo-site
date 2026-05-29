@@ -23,6 +23,10 @@ class PublicSiteSettingsOut(BaseModel):
     google_tag_manager_id: str | None = Field(
         default=None, serialization_alias="googleTagManagerId"
     )
+    load_marketing_scripts_after_consent: bool = Field(
+        default=True,
+        serialization_alias="loadMarketingScriptsAfterConsent",
+    )
 
 
 class PublicCategoryOut(BaseModel):

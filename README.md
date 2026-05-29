@@ -137,6 +137,17 @@ Abstração de storage em `backend/app/services/storage/` (`local` e `azure_blob
 
 No dev com Vite, `/uploads` também é proxy para a API.
 
+### Tracking e campanhas (CRP-007)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/public/tracking-events` | Eventos (UTMs, session, IP hasheado) |
+| GET | `/api/admin/campaigns/{id}/metrics` | Métricas agregadas da campanha |
+
+Eventos: `PageView`, `ViewMenu`, `ViewCampaignLandingPage`, `ClickWhatsApp`, `ClickDirections`, `ClickInstagram`, `ViewProduct`, `CouponShown`, `CouponCopied`.
+
+Frontend: `track()` em `frontend/src/lib/analytics.ts`, captura de UTMs/`fbclid`, banner de consentimento antes de scripts Meta/GTM (IDs em settings; SDK real não carregado nesta fase).
+
 ## Frontend (local)
 
 ```bash

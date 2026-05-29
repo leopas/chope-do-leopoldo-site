@@ -68,4 +68,5 @@ export type SiteSettings = {
   showResponsibleDrinkingNotice: boolean;
   metaPixelId?: string;
   googleTagManagerId?: string;
+  loadMarketingScriptsAfterConsent?: boolean;
 };
