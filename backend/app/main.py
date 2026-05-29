@@ -1,11 +1,14 @@
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.api.router import api_router
 from app.core.config import get_settings
+from app.db.session import validate_database_startup
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,7 +19,14 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 static_dir = Path(__file__).resolve().parent / "static"
 
-app = FastAPI(title=settings.app_name)
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    validate_database_startup(settings)
+    yield
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +40,9 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+app.include_router(api_router, prefix=settings.api_prefix)
 
 
 if static_dir.exists():

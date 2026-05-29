@@ -18,6 +18,14 @@ class Settings(BaseSettings):
         default="http://localhost:5173,http://localhost:8000",
         alias="CORS_ALLOWED_ORIGINS",
     )
+    database_url: str | None = Field(default=None, alias="DATABASE_URL")
+    db_ssl_enabled: bool = Field(default=False, alias="DB_SSL_ENABLED")
+    db_ssl_ca_path: str | None = Field(default=None, alias="DB_SSL_CA_PATH")
+    db_ssl_mode: str = Field(default="verify-full", alias="DB_SSL_MODE")
+
+    @property
+    def database_configured(self) -> bool:
+        return bool(self.database_url and self.database_url.strip())
 
     @property
     def cors_origins_list(self) -> list[str]:

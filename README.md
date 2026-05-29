@@ -34,7 +34,38 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-- Health: [http://localhost:8000/health](http://localhost:8000/health) → `{"status":"ok"}`
+- Health básico: [http://localhost:8000/health](http://localhost:8000/health) → `{"status":"ok"}`
+- Health do banco: [http://localhost:8000/api/health/db](http://localhost:8000/api/health/db)  
+  - Sem `DATABASE_URL`: `{"status":"skipped","database":"not_configured"}`  
+  - Com banco + SSL ok: `{"status":"ok","database":"connected"}`
+
+### Banco Azure com certificado SSL (CRP-002)
+
+A conexão usa SQLAlchemy 2 e detecta o driver pela `DATABASE_URL`:
+
+- `postgresql+psycopg://...` → `sslmode` + `sslrootcert`
+- `mysql+pymysql://...` → `ssl.ca`
+
+Variáveis (ver `.env.example`):
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME
+DB_SSL_ENABLED=true
+DB_SSL_CA_PATH=./certs/azure-db-ca.pem
+DB_SSL_MODE=verify-full
+```
+
+**Não commite** o certificado real nem `.env`. Instruções completas: [certs/README.md](certs/README.md).
+
+Se `DB_SSL_ENABLED=true` e o arquivo em `DB_SSL_CA_PATH` não existir, a API **não sobe** (erro explícito no startup).
+
+Testes do backend:
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
 
 ## Frontend (local)
 
