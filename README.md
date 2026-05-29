@@ -67,6 +67,24 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+### Modelagem e migrations (CRP-003)
+
+Entidades canônicas (sem ODS/Datamart): `categories`, `products`, `campaigns`, `media_assets`, `site_settings`, `tracking_events`, `admin_users`, `coupon_redemptions` (preparado).
+
+Preços em **centavos** (`price_cents`). `campaigns.slug` é único.
+
+Com `DATABASE_URL` configurada:
+
+```bash
+cd backend
+alembic upgrade head
+python -m app.db.seed
+```
+
+O seed é **idempotente** (pode rodar mais de uma vez). Popula categorias, produtos, campanhas, mídias e settings do Chope do Leopoldo.
+
+Schemas Pydantic de leitura em `backend/app/schemas/`.
+
 ## Frontend (local)
 
 ```bash
