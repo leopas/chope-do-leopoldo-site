@@ -1,0 +1,31 @@
+# env
+.env
+.env.*
+!.env.example
+
+# certs
+certs/
+*.pem
+*.key
+*.pfx
+*.crt
+
+# uploads locais
+local-uploads/
+backend/app/static/uploads/
+
+# python
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+
+# frontend
+node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
