@@ -1,6 +1,6 @@
 # Chope do Leopoldo — Site / Cardápio
 
-Monorepo com frontend React (Vite) e backend Python (FastAPI). O visual do protótipo Lovable (`leopoldo-bar-flow`) será migrado nos CRPs seguintes.
+Monorepo com frontend React (Vite) e backend Python (FastAPI). O visual do protótipo Lovable (`leopoldo-bar-flow`) foi migrado no CRP-001 (React Router DOM + mocks locais).
 
 ## Estrutura
 
