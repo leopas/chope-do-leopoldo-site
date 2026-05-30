@@ -16,6 +16,9 @@ local-uploads/
 backend/app/static/uploads/*
 !backend/app/static/uploads/.gitkeep
 
+# e2e playwright sqlite local
+backend/.e2e-data/
+
 # python
 __pycache__/
 .pytest_cache/
@@ -25,6 +28,9 @@ __pycache__/
 # frontend
 node_modules/
 frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+backend/app/static/frontend/
 
 # IDE / OS
 .idea/

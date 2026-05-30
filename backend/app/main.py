@@ -2,8 +2,9 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
@@ -21,6 +22,29 @@ settings = get_settings()
 uploads_dir = settings.uploads_path
 uploads_dir.mkdir(parents=True, exist_ok=True)
 spa_dir = resolve_spa_directory()
+
+
+def _register_spa_routes(application: FastAPI, directory: Path) -> None:
+    """Serve assets e fallback index.html para rotas do React Router."""
+    index_path = directory / "index.html"
+    assets_dir = directory / "assets"
+
+    if assets_dir.is_dir():
+        application.mount("/assets", StaticFiles(directory=assets_dir), name="spa-assets")
+
+    blocked_prefixes = ("api", "uploads")
+
+    @application.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str = "") -> FileResponse:
+        if full_path.startswith(blocked_prefixes) or full_path in blocked_prefixes:
+            raise HTTPException(status_code=404, detail="Not Found")
+        if full_path:
+            candidate = directory / full_path
+            if candidate.is_file():
+                return FileResponse(candidate)
+        if not index_path.is_file():
+            raise HTTPException(status_code=404, detail="Not Found")
+        return FileResponse(index_path)
 
 
 @asynccontextmanager
@@ -51,8 +75,7 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 logger.info("Uploads mounted at /uploads from %s", uploads_dir)
 
 if spa_dir is not None:
-    # html=True: /menu, /admin, /lp/:slug → index.html (React Router)
-    app.mount("/", StaticFiles(directory=spa_dir, html=True), name="spa")
-    logger.info("SPA frontend mounted from %s", spa_dir)
+    _register_spa_routes(app, spa_dir)
+    logger.info("SPA frontend from %s (fallback index.html)", spa_dir)
 else:
     logger.info("SPA static not found (dev: use Vite na porta 5173)")

@@ -206,6 +206,35 @@ docker compose up --build
 
 Copie `.env.example` para `.env.local` (`DATABASE_URL`, `JWT_SECRET`, admin, etc.).
 
+## Release gate (CRP-010)
+
+Gate mínimo antes do deploy:
+
+```bash
+# Linux/macOS / CI
+bash scripts/release-gate.sh
+
+# Windows
+powershell -File scripts/release-gate.ps1
+```
+
+| Etapa | O quê valida |
+|-------|----------------|
+| `pytest` (backend) | `/health`, `/api/health/db`, menu, campanhas, admin+JWT, tracking, upload |
+| `npm run build` | TypeScript + Vite |
+| Playwright (`frontend/e2e`) | `/`, `/menu`, `/lp/karaoke-sexta`, `/admin/login` |
+| `scripts/docker-smoke.sh` | `docker build` + `GET /health` |
+
+Checklist completo: [docs/release-checklist.md](docs/release-checklist.md).  
+CI: [.github/workflows/release-gate.yml](.github/workflows/release-gate.yml).
+
+Somente smoke Docker (sem gate completo):
+
+```bash
+bash scripts/docker-smoke.sh
+# ou: powershell -File scripts/docker-smoke.ps1
+```
+
 ## CRPs
 
 Pacote de mudanças em `CRPs_Chope_Leopoldo_MD/`. Ordem: 000 → 010.
